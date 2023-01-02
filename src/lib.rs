@@ -14,6 +14,11 @@
 //! implement this trait. This makes one independent from specific versions of API consumer crates.
 
 #![allow(non_camel_case_types)]
+#![no_std]
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 /// XCB connection
 ///
 /// This type represents `xcb_connection_t` in C. It is only ever referenced via a pointer.
@@ -29,4 +34,39 @@ pub enum xcb_connection_t {}
 pub unsafe trait AsRawXcbConnection {
     /// Get a raw xcb connection pointer from this object.
     fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t;
+}
+
+// Implementations for reference types
+
+unsafe impl<T: AsRawXcbConnection + ?Sized> AsRawXcbConnection for &T {
+    fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t {
+        (**self).as_raw_xcb_connection()
+    }
+}
+
+unsafe impl<T: AsRawXcbConnection + ?Sized> AsRawXcbConnection for &mut T {
+    fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t {
+        (**self).as_raw_xcb_connection()
+    }
+}
+
+#[cfg(feature = "alloc")]
+unsafe impl<T: AsRawXcbConnection + ?Sized> AsRawXcbConnection for alloc::boxed::Box<T> {
+    fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t {
+        (**self).as_raw_xcb_connection()
+    }
+}
+
+#[cfg(feature = "alloc")]
+unsafe impl<T: AsRawXcbConnection + ?Sized> AsRawXcbConnection for alloc::rc::Rc<T> {
+    fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t {
+        (**self).as_raw_xcb_connection()
+    }
+}
+
+#[cfg(feature = "alloc")]
+unsafe impl<T: AsRawXcbConnection + ?Sized> AsRawXcbConnection for alloc::sync::Arc<T> {
+    fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t {
+        (**self).as_raw_xcb_connection()
+    }
 }
