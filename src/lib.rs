@@ -74,8 +74,17 @@ unsafe impl<T: AsRawXcbConnection + ?Sized> AsRawXcbConnection for alloc::sync::
     }
 }
 
+#[cfg(feature = "alloc")]
+unsafe impl<T: AsRawXcbConnection + alloc::borrow::ToOwned + ?Sized> AsRawXcbConnection
+    for alloc::borrow::Cow<'_, T>
+{
+    fn as_raw_xcb_connection(&self) -> *mut xcb_connection_t {
+        (**self).as_raw_xcb_connection()
+    }
+}
+
 /// An assertion that this pointer is valid for as long as the underlying connection.
-/// 
+///
 /// This type provides an escape hatch for users who want to use a raw pointer to `xcb_connection_t`
 /// but still want to use the safety guarantees of this crate. By constructing an instance of this
 /// type, users can assert that the pointer is valid for as long as the underlying connection.
